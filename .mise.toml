@@ -1,0 +1,31 @@
+[env]
+# Ollama local API endpoint
+OLLAMA_HOST = "https://ollama.empyr.cloud"
+
+[tasks.setup]
+# Run this with: mise run setup
+description = "Create venv and install dependencies wo testing"
+run = "uv sync"
+
+[tasks.setup-dev]
+# Run this with: mise run setup
+description = "Create venv and install dependencies with uv with testing deps"
+run = "uv sync --group dev"
+
+
+[tasks.ollama]
+# Run your script
+description = "Generate positive & negative prompts with Ollama"
+run = "uv run python -m nodes.ollama_enhancer"
+
+[tasks.test]
+description = "Run pytest with verbose output"
+run = "uv run --group dev pytest --cov=nodes --cov-report=term-missing -v"
+
+[tasks.requirements-txt]
+description = "Run pytest with verbose output"
+run = "uv export --no-annotate --no-hashes --no-dev --no-header --format requirements-txt --output-file requirements.txt"
+
+[tools]
+python = "3.11"
+uv = "latest"

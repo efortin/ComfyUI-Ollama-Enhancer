@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  check-requirements:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install mise
+        run: |
+          curl https://mise.run | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install tools from mise
+        run: mise install
+
+      - name: Regenerate requirements.txt
+        run: mise run requirements-txt
+
+      - name: Check for changes in requirements.txt
+        run: |
+          if ! git diff --exit-code requirements.txt; then
+            echo "requirements.txt is out of date. Please run 'mise run requirements-txt' and commit the updated file."
+            exit 1
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install mise
+        run: |
+          curl https://mise.run | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install tools from mise
+        run: |
+          mise install
+          mise run setup-dev
+
+
+      - name: Run tests
+        run: mise run test

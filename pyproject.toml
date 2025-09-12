@@ -1,0 +1,26 @@
+[project]
+name = "comfyui_ollamaenhancer"
+description = "Custom ComfyUI nodes integrating Ollama to generate and enhance positive/negative prompts for Stable Diffusion workflows."
+version = "1.0.0"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+dependencies = ["torch", "ollama"]
+
+
+[project.urls]
+Repository = "https://github.com/efortin/ComfyUI-Ollama-Enhancer.git"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-mock",
+    "coverage",
+    "pytest-cov",
+    "numpy>=2.3.3",
+]
+
+[tool.comfy]
+PublisherId = "man"
+DisplayName = "ComfyUI-Manufnode"
+#Icon = "https://raw.githubusercontent.com/efortin/ComfyUI-Ollama-Enhancer/main/icon/icons.png"

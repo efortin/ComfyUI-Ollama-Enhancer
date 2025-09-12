@@ -1,0 +1,5 @@
+.idea
+.env
+
+uv.lock
+.coverage
