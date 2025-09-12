@@ -1,11 +1,13 @@
 import argparse
 import json
 import logging
+import random
 from pathlib import Path
 from string import Template
 from typing import Final, List
 
 from ollama import Client, ResponseError
+
 from .models import DummyClip  # pour le test local
 
 
@@ -24,6 +26,10 @@ class OllamaEnhancer:
     puis encode en CONDITIONING compatible avec KSampler.
     """
 
+    @staticmethod
+    def seed():
+        return random.randint(0, 2 ** 32 - 1)
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -35,6 +41,7 @@ class OllamaEnhancer:
                 "template_path": ("STRING", {"default": "prompt.jinja"}),
                 "enhance_positive": (["true", "false"], {"default": "true"}),
                 "force_cpu": (["true", "false"], {"default": "false"}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 2 ** 32 - 1})
             }
         }
 
@@ -46,7 +53,13 @@ class OllamaEnhancer:
     ALWAYS_NEGATIVE: Final[List[str]] = [
         "duplicate", "cloned", "extra heads", "extra limbs", "deformed",
         "distorted", "warped", "surreal", "cgi", "watermark", "text",
-        "logo", "lowres", "blurry"
+        "logo", "lowres", "blurry",
+        # Ajouts qualité d’image
+        "low resolution", "blurry details", "pixelation", "distortion", "grainy textures",
+        "overexposure", "underexposure", "washed-out colors", "dull colors",
+        "artifacts", "noise", "poor lighting", "flat composition", "lack of depth",
+        "unnatural shadows", "oversaturation", "unbalanced contrast",
+        "unrealistic details", "amateurish quality", "unprofessional finish",
     ]
 
     @classmethod
@@ -63,15 +76,17 @@ class OllamaEnhancer:
 
     @classmethod
     def generate(
-        cls,
-        clip,
-        user_prompt: str,
-        model: str,
-        ollama_url,
-        template_path,
-        enhance_positive: bool,
-        force_cpu: bool,
+            cls,
+            clip,
+            user_prompt: str,
+            model: str,
+            ollama_url,
+            template_path,
+            enhance_positive: bool,
+            force_cpu: bool,
+            seed: int,
     ):
+        logging.info(f"Running OllamaEnhancer (seed={seed})")
         client = Client(host=ollama_url)
 
         # Instruction pour Ollama
@@ -130,7 +145,8 @@ class OllamaEnhancer:
 # Enregistrement ComfyUI
 NODE_CLASS_MAPPINGS = {"OllamaPosNegNode": OllamaEnhancer}
 NODE_DISPLAY_NAME_MAPPINGS = {"OllamaPosNegNode": "Ollama Pos+Neg (LLM)"}
-
+# Empêcher ComfyUI de mettre ce nœud en cache
+OllamaEnhancer.ALWAYS_RUN = True
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -157,7 +173,8 @@ if __name__ == "__main__":
         model=args.model,
         ollama_url=args.ollama_url,
         enhance_positive=args.enhance_positive,
-        force_cpu=args.force_cpu
+        force_cpu=args.force_cpu,
+        seed=OllamaEnhancer.seed(),
     )
 
     print("Positive:", pos)

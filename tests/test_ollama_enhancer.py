@@ -18,6 +18,25 @@ class FakeModel:
 logging.basicConfig(level=logging.INFO)
 
 
+@staticmethod
+def unwrap_cond(cond):
+    """
+    Déballe un objet conditioning ([[tensor, dict]])
+    et retourne le texte ou le tensor "pooled_output".
+    """
+    if not cond or not isinstance(cond, list):
+        return ""
+
+    tensor, cond_dict = cond[0]
+
+    # Si dict contient pooled_output, on le prend
+    if isinstance(cond_dict, dict) and "pooled_output" in cond_dict:
+        return cond_dict["pooled_output"]
+
+    # Sinon on renvoie directement le tensor (fallback)
+    return tensor
+
+
 @pytest.fixture
 def fake_client():
     return MagicMock()
@@ -52,11 +71,12 @@ def test_generate_with_mock(fake_client):
             ollama_url="http://fake",
             template_path="prompt.jinja",
             enhance_positive=True,
-            force_cpu=False
+            force_cpu=False,
+            seed=OllamaEnhancer.seed()
         )
 
     assert user_prompt != pos
-    assert all(word in neg for word in OllamaEnhancer.ALWAYS_NEGATIVE)
+    assert all(word in unwrap_cond(neg) for word in OllamaEnhancer.ALWAYS_NEGATIVE)
 
 
 def test_generate_with_ollama_pull_response_error():
@@ -77,11 +97,13 @@ def test_generate_with_ollama_pull_response_error():
             ollama_url="http://fake",
             template_path="prompt.jinja",
             enhance_positive=True,
-            force_cpu=False
+            force_cpu=False,
+            seed=OllamaEnhancer.seed()
         )
 
-    assert pos == "a fallback prompt"
-    assert neg == ", ".join(OllamaEnhancer.ALWAYS_NEGATIVE)
+    assert unwrap_cond(pos) == "a fallback prompt"
+    assert unwrap_cond(neg) == ", ".join(OllamaEnhancer.ALWAYS_NEGATIVE)
+
 
 def test_generate_retrun_user_prompt_if_enhance_positive_is_false():
     """
@@ -108,11 +130,14 @@ def test_generate_retrun_user_prompt_if_enhance_positive_is_false():
             ollama_url="http://fake",
             template_path="prompt.jinja",
             enhance_positive=False,
-            force_cpu=False
+            force_cpu=False,
+            seed=OllamaEnhancer.seed()
         )
 
-    assert pos == user_prompt
-    assert all(word in neg + ", ".join(OllamaEnhancer.ALWAYS_NEGATIVE) for word in OllamaEnhancer.ALWAYS_NEGATIVE)
+    assert unwrap_cond(pos) == user_prompt
+    assert all(
+        word in unwrap_cond(neg) + ", ".join(OllamaEnhancer.ALWAYS_NEGATIVE) for word in OllamaEnhancer.ALWAYS_NEGATIVE)
+
 
 def test_generate_return_user_prompt_if_force_cpu_is_true():
     """
@@ -139,7 +164,8 @@ def test_generate_return_user_prompt_if_force_cpu_is_true():
             ollama_url="http://fake",
             template_path="prompt.jinja",
             enhance_positive=True,
-            force_cpu=True  # 👈 force CPU execution
+            force_cpu=True,
+            seed=OllamaEnhancer.seed()
         )
 
     # ✅ Ensure client.generate was called with CPU option

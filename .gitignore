@@ -1,5 +1,6 @@
 .idea
 .env
+.venv
 
 uv.lock
 .coverage
