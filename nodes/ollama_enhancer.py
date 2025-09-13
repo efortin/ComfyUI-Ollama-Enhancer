@@ -11,13 +11,6 @@ from ollama import Client, ResponseError
 from .models import DummyClip  # pour le test local
 
 
-def load_instruction_template(path="prompt.jinja", **kwargs) -> str:
-    """Charge et rend un template Jinja simple depuis un fichier texte."""
-    base_dir = Path(__file__).parent
-    full_path = (base_dir / path).resolve()
-    text = full_path.read_text(encoding="utf-8")
-    tpl = Template(text)
-    return tpl.safe_substitute(**kwargs).strip()
 
 
 class OllamaEnhancer:
@@ -25,7 +18,6 @@ class OllamaEnhancer:
     ComfyUI node: génère des prompts positifs/négatifs avec Ollama,
     puis encode en CONDITIONING compatible avec KSampler.
     """
-
     @staticmethod
     def seed():
         return random.randint(0, 2 ** 32 - 1)
@@ -53,9 +45,7 @@ class OllamaEnhancer:
     ALWAYS_NEGATIVE: Final[List[str]] = [
         "duplicate", "cloned", "extra heads", "extra limbs", "deformed",
         "distorted", "warped", "surreal", "cgi", "watermark", "text",
-        "logo", "lowres", "blurry",
-        # Ajouts qualité d’image
-        "low resolution", "blurry details", "pixelation", "distortion", "grainy textures",
+        "logo", "lowres", "blurry",  "low resolution", "blurry details", "pixelation", "distortion", "grainy textures",
         "overexposure", "underexposure", "washed-out colors", "dull colors",
         "artifacts", "noise", "poor lighting", "flat composition", "lack of depth",
         "unnatural shadows", "oversaturation", "unbalanced contrast",
@@ -74,6 +64,15 @@ class OllamaEnhancer:
         )
         return [[cond_dict.pop("cond"), cond_dict]]
 
+    @staticmethod
+    def load_instruction_template(path="prompt.jinja", **kwargs) -> str:
+        """Charge et rend un template Jinja simple depuis un fichier texte."""
+        base_dir = Path(__file__).parent
+        full_path = (base_dir / path).resolve()
+        text = full_path.read_text(encoding="utf-8")
+        tpl = Template(text)
+        return tpl.safe_substitute(**kwargs).strip()
+
     @classmethod
     def generate(
             cls,
@@ -82,18 +81,21 @@ class OllamaEnhancer:
             model: str,
             ollama_url,
             template_path,
-            enhance_positive: bool,
-            force_cpu: bool,
+            enhance_positive: str,
+            force_cpu: str,
             seed: int,
     ):
         logging.info(f"Running OllamaEnhancer (seed={seed})")
         client = Client(host=ollama_url)
 
+        force_cpu_bool = str(force_cpu).lower() in ("true", "1", "yes")
+        enhance_positive_bool = str(enhance_positive).lower() in ("true", "1", "yes")
+
         # Instruction pour Ollama
-        instruction = load_instruction_template(template_path, user_prompt=user_prompt)
+        instruction = OllamaEnhancer.load_instruction_template(template_path, user_prompt=user_prompt)
         logging.info(f"OllamaEnhancer generated instruction: {instruction}")
 
-        options = {"num_gpu": 0} if force_cpu else {"num_gpu": 1}
+        options = {"num_gpu": 0} if force_cpu_bool else {"num_gpu": 1}
 
         try:
             resp = client.generate(
@@ -118,7 +120,7 @@ class OllamaEnhancer:
 
             # Texte positif
             positive_text = " ".join(result.get("positive_text", [user_prompt])).strip()
-            if not enhance_positive:
+            if not enhance_positive_bool:
                 positive_text = user_prompt
 
             # Texte négatif
