@@ -28,11 +28,12 @@ class OllamaEnhancer:
             "required": {
                 "clip": ("CLIP",),
                 "user_prompt": ("STRING", {"multiline": True}),
-                "model": ("STRING", {"default": "llama3.2:3b"}),
                 "ollama_url": ("STRING", {"default": "http://ollama:11434"}),
                 "template_path": ("STRING", {"default": "prompt.jinja"}),
                 "enhance_positive": (["true", "false"], {"default": "true"}),
-                "force_cpu": (["true", "false"], {"default": "false"}),
+                "reuse_running_model": (["true", "false"], {"default": "true"}),
+                "fallback_model": ("STRING", {"default": "llama3.2:3b"}),
+                "fallback_force_cpu": (["true", "false"], {"default": "true"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 2 ** 32 - 1})
             }
         }
@@ -73,36 +74,45 @@ class OllamaEnhancer:
         tpl = Template(text)
         return tpl.safe_substitute(**kwargs).strip()
 
+    @staticmethod
+    def retrieve_running_models(client: Client, fallback_model: str) -> str:
+        response = client.ps()
+        if len(response.models) > 0:
+            return response.models[0].model
+        return fallback_model
+
     @classmethod
     def generate(
             cls,
             clip,
             user_prompt: str,
-            model: str,
             ollama_url,
             template_path,
             enhance_positive: str,
-            force_cpu: str,
+            reuse_running_model: str,
+            fallback_model: str,
+            fallback_force_cpu: str,
             seed: int,
     ):
         logging.info(f"Running OllamaEnhancer (seed={seed})")
         client = Client(host=ollama_url)
 
-        force_cpu_bool = str(force_cpu).lower() in ("true", "1", "yes")
+        force_cpu_bool = str(fallback_force_cpu).lower() in ("true", "1", "yes")
         enhance_positive_bool = str(enhance_positive).lower() in ("true", "1", "yes")
 
         # Instruction pour Ollama
         instruction = OllamaEnhancer.load_instruction_template(template_path, user_prompt=user_prompt)
         logging.info(f"OllamaEnhancer generated instruction: {instruction}")
 
-        options = {"num_gpu": 0} if force_cpu_bool else {"num_gpu": 1}
+        selected_model = OllamaEnhancer.retrieve_running_models(client, fallback_model=fallback_model) if reuse_running_model else fallback_model
+        fallback_model_options = {"num_gpu": 0}
 
         try:
             resp = client.generate(
-                model=model,
+                model=selected_model,
                 prompt=instruction,
-                options=options,
-                format="json",
+                options=fallback_model_options if selected_model == fallback_model else {},
+                format="json" if selected_model == fallback_model else None,
             )
         except ResponseError as e:
             logging.error(f"OllamaEnhancer generation error: {e}")
@@ -172,10 +182,11 @@ if __name__ == "__main__":
         clip=clip,
         user_prompt=args.user_prompt,
         template_path=args.template_path,
-        model=args.model,
         ollama_url=args.ollama_url,
         enhance_positive=args.enhance_positive,
-        force_cpu=args.force_cpu,
+        reuse_running_model="true",
+        fallback_model=args.model,
+        fallback_force_cpu=args.force_cpu,
         seed=OllamaEnhancer.seed(),
     )
 

@@ -67,11 +67,12 @@ def test_generate_with_mock(fake_client):
         pos, neg = node.generate(
             clip=DummyClip(),
             user_prompt=user_prompt,
-            model="llama3.2:3b",
+            fallback_model="llama3.2:3b",
             ollama_url="http://fake",
             template_path="prompt.jinja",
-            enhance_positive=True,
-            force_cpu=False,
+            reuse_running_model="true",
+            enhance_positive="true",
+            fallback_force_cpu="false",
             seed=OllamaEnhancer.seed()
         )
 
@@ -93,11 +94,12 @@ def test_generate_with_ollama_pull_response_error():
         pos, neg = node.generate(
             clip=DummyClip(),
             user_prompt="a fallback prompt",
-            model="llama3.2:3b",
+            fallback_model="llama3.2:3b",
             ollama_url="http://fake",
             template_path="prompt.jinja",
-            enhance_positive=True,
-            force_cpu=False,
+            reuse_running_model="true",
+            enhance_positive="true",
+            fallback_force_cpu="false",
             seed=OllamaEnhancer.seed()
         )
 
@@ -126,11 +128,12 @@ def test_generate_retrun_user_prompt_if_enhance_positive_is_false():
         pos, neg = node.generate(
             clip=DummyClip(),
             user_prompt=user_prompt,
-            model="llama3.2:3b",
             ollama_url="http://fake",
             template_path="prompt.jinja",
-            enhance_positive=False,
-            force_cpu=False,
+            enhance_positive="False",
+            fallback_force_cpu="False",
+            fallback_model="llama3.2:3b",
+            reuse_running_model="True",
             seed=OllamaEnhancer.seed()
         )
 
@@ -160,11 +163,12 @@ def test_generate_return_user_prompt_if_force_cpu_is_true():
         pos, neg = node.generate(
             clip=DummyClip(),
             user_prompt=user_prompt,
-            model="llama3.2:3b",
+            reuse_running_model="true",
+            fallback_model="llama3.2:3b",
+            fallback_force_cpu=False,
             ollama_url="http://fake",
             template_path="prompt.jinja",
             enhance_positive=True,
-            force_cpu=True,
             seed=OllamaEnhancer.seed()
         )
 
