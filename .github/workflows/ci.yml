@@ -21,7 +21,9 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install tools from mise
-        run: mise install
+        run: |
+          mise install
+          mise run setup-dev
 
       - name: Regenerate requirements.txt
         run: mise run requirements-txt
