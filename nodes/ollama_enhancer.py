@@ -100,7 +100,7 @@ class OllamaEnhancer:
     @classmethod
     def generate(  # pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
         cls,
-        clip_model,
+        clip,
         user_prompt: str,
         ollama_url: str,
         template_path: str,
@@ -144,8 +144,8 @@ class OllamaEnhancer:
         except ResponseError as e:
             logging.error("OllamaEnhancer generation error: %s", e)
             return (
-                cls._encode_text(clip_model, user_prompt),
-                cls._encode_text(clip_model, ", ".join(cls.ALWAYS_NEGATIVE)),
+                cls._encode_text(clip, user_prompt),
+                cls._encode_text(clip, ", ".join(cls.ALWAYS_NEGATIVE)),
             )
 
         raw = resp.get("response", "").strip()
@@ -167,15 +167,15 @@ class OllamaEnhancer:
             logging.info("Negative text: %s", negative_text)
 
             return (
-                cls._encode_text(clip_model, positive_text),
-                cls._encode_text(clip_model, negative_text),
+                cls._encode_text(clip, positive_text),
+                cls._encode_text(clip, negative_text),
             )
 
         except JSONDecodeError as e:
             logging.error("Failed to decode Ollama response: %s", e)
             return (
-                cls._encode_text(clip_model, user_prompt),
-                cls._encode_text(clip_model, ", ".join(cls.ALWAYS_NEGATIVE)),
+                cls._encode_text(clip, user_prompt),
+                cls._encode_text(clip, ", ".join(cls.ALWAYS_NEGATIVE)),
             )
 
 
@@ -198,11 +198,11 @@ if __name__ == "__main__":
     parser.add_argument("--force_cpu", type=lambda x: str(x).lower() in ["true", "1", "yes"], default=False)
 
     args = parser.parse_args()
-    clip = DummyClip()  # stub for local dev
+    dummyClip = DummyClip()  # stub for local dev
 
     node = OllamaEnhancer()
     pos, neg = node.generate(
-        clip_model=clip,
+        clip=dummyClip,
         user_prompt=args.user_prompt,
         template_path=args.template_path,
         ollama_url=args.ollama_url,
