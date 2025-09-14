@@ -19,13 +19,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/uv
-          key: ubuntu-uv-${{ hashFiles('uv.lock') }}
-          restore-keys: ubuntu-uv-
+          key: uv-cache-${{ hashFiles('uv.lock') }}
 
       - name: Install mise
         run: |
           curl https://mise.run | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+
 
       - name: Install tools from mise
         run: |
@@ -52,13 +53,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/uv
-          key: ubuntu-uv-${{ hashFiles('uv.lock') }}
-          restore-keys: ubuntu-uv-
+          key: uv-cache-${{ hashFiles('uv.lock') }}
 
       - name: Install mise
         run: |
           curl https://mise.run | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
 
       - name: Install tools from mise
         run: |
