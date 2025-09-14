@@ -65,7 +65,7 @@ def test_generate_with_mock(fake_client):
     with patch("nodes.ollama_enhancer.Client", return_value=fake_client):
         node = OllamaEnhancer()
         pos, neg = node.generate(
-            clip=DummyClip(),
+            clip_model=DummyClip(),
             user_prompt=user_prompt,
             fallback_model="llama3.2:3b",
             ollama_url="http://fake",
@@ -92,7 +92,7 @@ def test_generate_with_ollama_pull_response_error():
     with patch("nodes.ollama_enhancer.Client", return_value=fake_client):
         node = OllamaEnhancer()
         pos, neg = node.generate(
-            clip=DummyClip(),
+            clip_model=DummyClip(),
             user_prompt="a fallback prompt",
             fallback_model="llama3.2:3b",
             ollama_url="http://fake",
@@ -126,7 +126,7 @@ def test_generate_retrun_user_prompt_if_enhance_positive_is_false():
     with patch("nodes.ollama_enhancer.Client", return_value=fake_client):
         node = OllamaEnhancer()
         pos, neg = node.generate(
-            clip=DummyClip(),
+            clip_model=DummyClip(),
             user_prompt=user_prompt,
             ollama_url="http://fake",
             template_path="prompt.jinja",
@@ -142,7 +142,7 @@ def test_generate_retrun_user_prompt_if_enhance_positive_is_false():
         word in unwrap_cond(neg) + ", ".join(OllamaEnhancer.ALWAYS_NEGATIVE) for word in OllamaEnhancer.ALWAYS_NEGATIVE)
 
 
-def test_generate_return_user_prompt_if_force_cpu_is_true():
+def test_generate_with_force_cpu_send_no_gpu():
     """
     GIVEN Ollama returns a response with positive/negative text
     WHEN generate() is called with force_cpu=True
@@ -161,14 +161,14 @@ def test_generate_return_user_prompt_if_force_cpu_is_true():
     with patch("nodes.ollama_enhancer.Client", return_value=fake_client):
         node = OllamaEnhancer()
         pos, neg = node.generate(
-            clip=DummyClip(),
+            clip_model=DummyClip(),
             user_prompt=user_prompt,
             reuse_running_model="true",
             fallback_model="llama3.2:3b",
-            fallback_force_cpu=False,
+            fallback_force_cpu="true",
             ollama_url="http://fake",
             template_path="prompt.jinja",
-            enhance_positive=True,
+            enhance_positive="true",
             seed=OllamaEnhancer.seed()
         )
 
@@ -176,6 +176,45 @@ def test_generate_return_user_prompt_if_force_cpu_is_true():
     fake_client.generate.assert_called_once_with(
         model="llama3.2:3b",
         prompt=ANY,
-        options={"num_gpu": 0},  # 👈 CPU mode
+        options={"num_gpu": 0},
+        format="json",
+    )
+
+
+def test_generate_without_force_gpu_send_nothing():
+    """
+    GIVEN Ollama returns a response with positive/negative text
+    WHEN generate() is called with force_cpu=True
+    THEN it should still call client.generate,
+    AND ensure options are set to CPU mode (num_gpu=0).
+    """
+    fake_client = MagicMock()
+    fake_client.generate.return_value = {
+        "response": json.dumps({
+            "positive_text": ["ignored text"],
+            "negative_text": ["foo bar"] + OllamaEnhancer.ALWAYS_NEGATIVE,
+        })
+    }
+
+    user_prompt = "a fallback prompt"
+    with patch("nodes.ollama_enhancer.Client", return_value=fake_client):
+        node = OllamaEnhancer()
+        pos, neg = node.generate(
+            clip_model=DummyClip(),
+            user_prompt=user_prompt,
+            reuse_running_model="true",
+            fallback_model="llama3.2:3b",
+            fallback_force_cpu="false",
+            ollama_url="http://fake",
+            template_path="prompt.jinja",
+            enhance_positive="true",
+            seed=OllamaEnhancer.seed()
+        )
+
+    # ✅ Ensure client.generate was called with CPU option
+    fake_client.generate.assert_called_once_with(
+        model="llama3.2:3b",
+        prompt=ANY,
+        options={},
         format="json",
     )

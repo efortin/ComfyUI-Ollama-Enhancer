@@ -4,7 +4,7 @@ description = "Custom ComfyUI nodes integrating Ollama to generate and enhance p
 version = "1.0.0"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
-dependencies = ["torch", "ollama"]
+dependencies = ["ollama"]
 
 
 [project.urls]
