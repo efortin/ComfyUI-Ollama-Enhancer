@@ -26,6 +26,12 @@ run = "uv run --group dev pytest --cov=nodes --cov-report=term-missing -v"
 description = "Run pytest with verbose output"
 run = "uv export --no-annotate --no-hashes --no-dev --no-header --format requirements-txt --output-file requirements.txt"
 
+[tasks.lint]
+description = "Run pytest with verbose output"
+run = "uv run pylint --output-format=parseable nodes "
+
+
 [tools]
 python = "3.11"
 uv = "latest"
+

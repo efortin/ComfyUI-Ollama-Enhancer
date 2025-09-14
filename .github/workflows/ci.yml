@@ -65,5 +65,8 @@ jobs:
           mise install
           mise run setup-dev
 
-      - name: Run tests
+      - name: Lint
+        run: mise run lint
+
+      - name: Test
         run: mise run test

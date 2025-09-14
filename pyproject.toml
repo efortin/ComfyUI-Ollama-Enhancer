@@ -18,9 +18,13 @@ dev = [
     "coverage",
     "pytest-cov",
     "numpy>=2.3.3",
+    "pylint"
 ]
 
 [tool.comfy]
 PublisherId = "man"
 DisplayName = "ComfyUI-Manufnode"
 #Icon = "https://raw.githubusercontent.com/efortin/ComfyUI-Ollama-Enhancer/main/icon/icons.png"
+
+[tool.pylint.format]
+max-line-length = 150
