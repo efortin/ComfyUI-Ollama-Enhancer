@@ -65,7 +65,7 @@ def test_generate_with_mock(fake_client):
     with patch("nodes.ollama_enhancer.Client", return_value=fake_client):
         node = OllamaEnhancer()
         pos, neg = node.generate(
-            clip_model=DummyClip(),
+            clip=DummyClip(),
             user_prompt=user_prompt,
             fallback_model="llama3.2:3b",
             ollama_url="http://fake",
@@ -92,7 +92,7 @@ def test_generate_with_ollama_pull_response_error():
     with patch("nodes.ollama_enhancer.Client", return_value=fake_client):
         node = OllamaEnhancer()
         pos, neg = node.generate(
-            clip_model=DummyClip(),
+            clip=DummyClip(),
             user_prompt="a fallback prompt",
             fallback_model="llama3.2:3b",
             ollama_url="http://fake",
@@ -126,7 +126,7 @@ def test_generate_retrun_user_prompt_if_enhance_positive_is_false():
     with patch("nodes.ollama_enhancer.Client", return_value=fake_client):
         node = OllamaEnhancer()
         pos, neg = node.generate(
-            clip_model=DummyClip(),
+            clip=DummyClip(),
             user_prompt=user_prompt,
             ollama_url="http://fake",
             template_path="prompt.jinja",
@@ -161,7 +161,7 @@ def test_generate_with_force_cpu_send_no_gpu():
     with patch("nodes.ollama_enhancer.Client", return_value=fake_client):
         node = OllamaEnhancer()
         pos, neg = node.generate(
-            clip_model=DummyClip(),
+            clip=DummyClip(),
             user_prompt=user_prompt,
             reuse_running_model="true",
             fallback_model="llama3.2:3b",
@@ -200,7 +200,7 @@ def test_generate_without_force_gpu_send_nothing():
     with patch("nodes.ollama_enhancer.Client", return_value=fake_client):
         node = OllamaEnhancer()
         pos, neg = node.generate(
-            clip_model=DummyClip(),
+            clip=DummyClip(),
             user_prompt=user_prompt,
             reuse_running_model="true",
             fallback_model="llama3.2:3b",
