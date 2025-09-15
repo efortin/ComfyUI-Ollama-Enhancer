@@ -71,7 +71,7 @@
       "reuse_running_model": "true",
       "fallback_model": "llama3.2:3b",
       "fallback_force_cpu": "true",
-      "seed": 1647742884,
+      "seed": 0,
       "clip": ["CheckpointLoaderSimple", 1]
     },
     "class_type": "OllamaEnhancerNode",
