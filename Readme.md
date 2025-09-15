@@ -47,3 +47,11 @@ mise trust .mise.toml
 mise run setup-dev 
 mise run test
 ```
+
+```bash
+mise run ollama \
+  --user_prompt "A whimsical Ghibli-style girl in a forest at sunset" \
+  --ollama_url=https://ollama.empyr.cloud \
+  --force_cpu true \
+  --enhance_positive true
+```

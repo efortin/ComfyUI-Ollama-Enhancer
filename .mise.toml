@@ -1,6 +1,4 @@
 [env]
-# Ollama local API endpoint
-OLLAMA_HOST = "https://ollama.empyr.cloud"
 
 [tasks.setup]
 # Run this with: mise run setup

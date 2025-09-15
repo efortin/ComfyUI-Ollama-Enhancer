@@ -180,10 +180,9 @@ class OllamaEnhancer:
 
 
 # Register node for ComfyUI
-NODE_CLASS_MAPPINGS = {"OllamaPosNegNode": OllamaEnhancer}
-NODE_DISPLAY_NAME_MAPPINGS = {"OllamaPosNegNode": "Ollama Pos+Neg (LLM)"}
-# Force ComfyUI to always rerun this node
-OllamaEnhancer.ALWAYS_RUN = True
+NODE_CLASS_MAPPINGS = {"OllamaEnhancerNode": OllamaEnhancer}
+NODE_DISPLAY_NAME_MAPPINGS = {"OllamaEnhancerNode": "OllamaEnhancerNode"}
+
 
 
 if __name__ == "__main__":
