@@ -1,0 +1,80 @@
+{
+  "VAEDecode": {
+    "inputs": {
+      "samples": ["KSampler", 0],
+      "vae": ["CheckpointLoaderSimple", 2]
+    },
+    "class_type": "VAEDecode",
+    "_meta": { "title": "VAE Decode" }
+  },
+  "UpscaleModelLoader": {
+    "inputs": {
+      "model_name": "4x-UltraSharp.pth"
+    },
+    "class_type": "UpscaleModelLoader",
+    "_meta": { "title": "Charger ESRGAN (UltraSharp)" }
+  },
+  "ImageUpscaleWithModel": {
+    "inputs": {
+      "upscale_model": ["UpscaleModelLoader", 0],
+      "image": ["VAEDecode", 0]
+    },
+    "class_type": "ImageUpscaleWithModel",
+    "_meta": { "title": "Upscale ESRGAN ×2 (UltraSharp)" }
+  },
+  "SaveImage": {
+    "inputs": {
+      "filename_prefix": "ComfyUI_FluxSchnell_ESRGAN",
+      "images": ["ImageUpscaleWithModel", 0]
+    },
+    "class_type": "SaveImage",
+    "_meta": { "title": "Enregistrer Image" }
+  },
+  "KSampler": {
+    "inputs": {
+      "seed": 295312109359859,
+      "steps": 25,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": ["CheckpointLoaderSimple", 0],
+      "positive": ["OllamaEnhancerNode", 0],
+      "negative": ["OllamaEnhancerNode", 1],
+      "latent_image": ["EmptyLatentImage", 0]
+    },
+    "class_type": "KSampler",
+    "_meta": { "title": "KSampler" }
+  },
+  "CheckpointLoaderSimple": {
+    "inputs": {
+      "ckpt_name": "Flux_dev_v1.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": { "title": "Charger Point de Contrôle" }
+  },
+  "EmptyLatentImage": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": { "title": "Image Latente Vide" }
+  },
+  "OllamaEnhancerNode": {
+    "inputs": {
+      "user_prompt": "A small girl holding her baby kitten, watching a golden sunset over a towering mountain crowned by a distant temple, rendered in a comic style",
+      "ollama_url": "http://ollama:11434",
+      "template_path": "prompt.jinja",
+      "enhance_positive": "true",
+      "reuse_running_model": "true",
+      "fallback_model": "llama3.2:3b",
+      "fallback_force_cpu": "true",
+      "seed": 1647742884,
+      "clip": ["CheckpointLoaderSimple", 1]
+    },
+    "class_type": "OllamaEnhancerNode",
+    "_meta": { "title": "OllamaEnhancerNode" }
+  }
+}
